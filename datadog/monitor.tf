@@ -3,11 +3,11 @@ resource "datadog_monitor" "keepalive" {
   type    = "service check"
   message = "hoge"
   query   = "hogew"
-#   monitor_thresholds {
-#     ok       = 1
-#     warning  = 1
-#     critical = 1
-#   }
+  monitor_thresholds {
+    ok       = 1
+    warning  = 1
+    critical = 1
+  }
   notify_no_data    = true
   no_data_timeframe = 2
   new_host_delay    = 300
@@ -16,4 +16,8 @@ resource "datadog_monitor" "keepalive" {
   include_tags      = true
   notify_audit      = false
   tags              = ["service:hofe"]
+}
+
+variable "hoge" {
+    type = string
 }

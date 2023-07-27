@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/csv"
 	"log"
+	"os"
 
 	"github.com/hashicorp/hcl2/gohcl"
 	"github.com/hashicorp/hcl2/hcl"
 	"github.com/hashicorp/hcl2/hclparse"
-	"github.com/hashicorp/hcl2/hclwrite"
+	// "github.com/hashicorp/hcl2/hclwrite"
 )
 
 const (
@@ -33,6 +35,19 @@ type MonitorThresholds struct {
 	Ok       int `hcl:"ok"`
 	Warning  int `hcl:"warning"`
 	Critical int `hcl:"critical"`
+}
+
+type MapResource struct {
+	Name  string
+	Query string
+}
+
+func (m *MapResource) addName(monitor Monitor) {
+	m.Name = monitor.Name
+}
+
+func (m *MapResource) addQuery(monitor Monitor) {
+	m.Query = monitor.Query
 }
 
 func main() {
@@ -66,7 +81,6 @@ func Run() {
 	// 	}
 	// }
 
-
 	var monitor Monitor
 	//BlocksAtPos は、指定された位置を含むすべてのブロックを、
 	//最も外側のブロックが最初で最も内側のブロックが最後になるように順序付けして検索しようとします。
@@ -74,6 +88,10 @@ func Run() {
 	// hcl.Pos{}.Line(int) これは0となるから、file型の先頭からblockを抽出してスライスに格納している
 	main := file.BlocksAtPos(hcl.Pos{})
 	for _, b := range main {
+		if b.Type != "resource" {
+			continue
+		}
+
 		label := b.Labels[0]
 		if label != labelName {
 			continue
@@ -83,10 +101,27 @@ func Run() {
 		if diag != nil {
 			log.Fatal(diag)
 		}
-
 	}
 
-	hclFile := hclwrite.NewFile()
-	gohcl.EncodeIntoBody(&monitor, hclFile.Body())
+	var mapResource MapResource
+	mapResource.addName(monitor)
+	mapResource.addQuery(monitor)
+
+	records := [][]string{
+		[]string{"name", "query",},
+		[]string{mapResource.Name, mapResource.Query,},
+	}
+
+	csvFile, err := os.Create("demo.csv")
+	if err != nil {
+		log.Fatalf("error: create csv file => %v", err)
+	}
+	defer csvFile.Close()
+
+	cw := csv.NewWriter(csvFile)
+	cw.WriteAll(records)
+
+	// hclFile := hclwrite.NewFile()
+	// gohcl.EncodeIntoBody(&monitor, hclFile.Body())
 
 }

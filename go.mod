@@ -3,9 +3,9 @@ module hcl-parser-go
 go 1.19
 
 require (
+	github.com/hashicorp/hcl/v2 v2.17.0
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
 	github.com/zclconf/go-cty v1.13.2
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
