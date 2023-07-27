@@ -108,8 +108,8 @@ func Run() {
 	mapResource.addQuery(monitor)
 
 	records := [][]string{
-		[]string{"name", "query",},
-		[]string{mapResource.Name, mapResource.Query,},
+		{"name", "query"},
+		{mapResource.Name, mapResource.Query},
 	}
 
 	csvFile, err := os.Create("demo.csv")
