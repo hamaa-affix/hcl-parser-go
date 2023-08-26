@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -51,7 +53,12 @@ func (m *MapResource) addQuery(monitor Monitor) {
 }
 
 func main() {
-	Run()
+	data, err := ioutil.ReadFile("./monitor.tf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(data))
+	// Run()
 }
 
 func Run() {
