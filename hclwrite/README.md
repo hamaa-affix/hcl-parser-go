@@ -48,6 +48,38 @@ for _, block := range hclFile.Body().Blocks() {
     */
 }
 ```
+### 新しいblockとattributeを追加する
+```go
+for _, block := range hclFile.Body().Blocks() {
+    // blockのbodyに新しいblockを追加
+    testBlock := block.Body().AppendNewBlock("test", nil)
+    testBlock.Body().SetAttributeValue("hoge", cty.StringVal("fuga"))
+    /*
+        これができる
+        test {
+            hoge = "huga"
+        }
+    */
+}
+```
+### 新しいattributeを作成して、aws_vpc.hoge.idみたいなexpressionを追加する
+```go
+// hcl fileの解析、body, blocksの取得
+for _, block := range hclFile.Body().Blocks() {
+    block.Body().SetAttributeTraversal("traversal", hcl.Traversal{
+        hcl.TraverseRoot{Name: "root"},
+        hcl.TraverseAttr{Name: "attr"},
+        hcl.TraverseAttr{Name: "hgoe"},
+    })
+}
+
+// output
+resource "aws_vpc" "staging" {
+  ~中略~
+  traversal = root.attr.hgoe
+}
+```
+
 ### blockの中のattributeを参照する
 ```go
 hclFile, diag := hclwrite.ParseConfig(fileByteData, filepath, hcl.InitialPos)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/zclconf/go-cty/cty"
 )
 
 func main() {
@@ -34,6 +35,17 @@ func main() {
 		blockPath := strings.Join(joinString, ".")
 		fmt.Println(blockPath)
 
+		// blockのbodyに新しいblockを追加
+		testBlock := block.Body().AppendNewBlock("test", nil)
+		testBlock.Body().SetAttributeValue("hoge", cty.StringVal("fuga"))
+
+		fmt.Printf("--------------------\n")
+		block.Body().SetAttributeTraversal("traversal", hcl.Traversal{
+			hcl.TraverseRoot{Name: "root"},
+			hcl.TraverseAttr{Name: "attr"},
+			hcl.TraverseAttr{Name: "hgoe"},
+		})
+
 		// blockのbodyのattributeを取得
 		for _, attribute := range block.Body().Attributes() {
 			// attributeのexpressionを取得
@@ -44,7 +56,7 @@ func main() {
 					tokens[tokenIndex].Bytes = []byte(strings.ReplaceAll(hclToken, hclToken, "127.0.0.0/32"))
 				}
 			}
-
+			fmt.Printf("--------------------\n")
 			fmt.Println(string(tokens.Bytes()))
 		}
 
@@ -52,7 +64,12 @@ func main() {
 		attr := block.Body().GetAttribute("instance_tenancy")
 		if attr != nil {
 			bytes := attr.Expr().BuildTokens(nil).Bytes()
+			fmt.Printf("--------------------\n")
 			fmt.Println(string(bytes))
 		}
 	}
+	fmt.Printf("--------------------\n")
+	updated := hclFile.BuildTokens(nil).Bytes()
+	output := hclwrite.Format(updated)
+	fmt.Fprint(os.Stdout, string(output))
 }
