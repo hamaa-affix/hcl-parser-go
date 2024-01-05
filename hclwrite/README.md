@@ -17,6 +17,43 @@ if diag != nil {}
 
 for _, block := range hclFile.Body().Blocks() {}
 ```
+### blockのtypeとlabelを取得
+```go
+// type => resourceなど
+// label => "aws_vpc", "hoge"など
+for _, block := range hclFile.Body().Blocks() {
+    labels := block.Labels()
+    resourceType := block.Type()
+    fmt.Printf("type: %s, labels: %v\n", resourceType, labels)
+    /*
+        <output>
+        type: resource, labels: [aws_vpc prod]
+        type: resource, labels: [aws_vpc staging]
+        type: output, labels: [hoge]
+    */
+
+    // labelとtypeを.区切りで文字列結合(block path生成)
+    labels := block.Labels()
+    resourceType := block.Type()
+    var joinString []string
+    joinString = append(joinString, resourceType)
+    joinString = append(joinString, labels...)
+    blockPath := strings.Join(joinString, ".")
+    fmt.Println(blockPath)
+    /*
+        <output>
+        resource.aws_vpc.prod
+        resource.aws_vpc.staging
+        output.hoge
+    */
+}
+
+// output
+go run .
+[aws_vpc prod]
+[aws_vpc staging]
+[hoge]
+```
 ### blockの中のattributeを参照する
 ```go
 hclFile, diag := hclwrite.ParseConfig(fileByteData, filepath, hcl.InitialPos)

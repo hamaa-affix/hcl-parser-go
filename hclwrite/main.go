@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	// "strings"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 )
@@ -24,6 +26,14 @@ func main() {
 
 	// hcl fileの解析、body, blocksの取得
 	for _, block := range hclFile.Body().Blocks() {
+		labels := block.Labels()
+		resourceType := block.Type()
+		var joinString []string
+		joinString = append(joinString, resourceType)
+		joinString = append(joinString, labels...)
+		blockPath := strings.Join(joinString, ".")
+		fmt.Println(blockPath)
+
 		// blockのbodyのattributeを取得
 		for _, attribute := range block.Body().Attributes() {
 			// attributeのexpressionを取得
@@ -36,6 +46,13 @@ func main() {
 			}
 
 			fmt.Println(string(tokens.Bytes()))
+		}
+
+		// 特定のattributeを取得
+		attr := block.Body().GetAttribute("instance_tenancy")
+		if attr != nil {
+			bytes := attr.Expr().BuildTokens(nil).Bytes()
+			fmt.Println(string(bytes))
 		}
 	}
 }
