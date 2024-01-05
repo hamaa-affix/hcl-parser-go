@@ -47,12 +47,6 @@ for _, block := range hclFile.Body().Blocks() {
         output.hoge
     */
 }
-
-// output
-go run .
-[aws_vpc prod]
-[aws_vpc staging]
-[hoge]
 ```
 ### blockの中のattributeを参照する
 ```go
