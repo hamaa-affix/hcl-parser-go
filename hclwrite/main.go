@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -26,7 +27,15 @@ func main() {
 		// blockのbodyのattributeを取得
 		for _, attribute := range block.Body().Attributes() {
 			// attributeのexpressionを取得
-			fmt.Println(string(attribute.Expr().BuildTokens(nil).Bytes()))
+			tokens := attribute.Expr().BuildTokens(nil)
+			for tokenIndex, token := range tokens {
+				hclToken := string(token.Bytes)
+				if hclToken == "10.0.0.0/16" {
+					tokens[tokenIndex].Bytes = []byte(strings.ReplaceAll(hclToken, hclToken, "127.0.0.0/32"))
+				}
+			}
+
+			fmt.Println(string(tokens.Bytes()))
 		}
 	}
 }

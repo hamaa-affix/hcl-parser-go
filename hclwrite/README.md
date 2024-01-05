@@ -38,4 +38,24 @@ for _, block := range hclFile.Body().Blocks() {
     }
 }
 ```
+### expressionを書き換える
+```go
+	// hcl fileの解析、body, blocksの取得
+	for _, block := range hclFile.Body().Blocks() {
+		// blockのbodyのattributeを取得
+		for _, attribute := range block.Body().Attributes() {
+			// attributeのexpressionを取得
+			tokens := attribute.Expr().BuildTokens(nil)
+            // 取得してexpressionをbuildTokenに変換しつつ、
+            // loopしながら条件にあったものだけを書き換える
+			for tokenIndex, token := range tokens {
+				hclToken := string(token.Bytes)
+				if hclToken == "10.0.0.0/16" {
+					tokens[tokenIndex].Bytes = []byte(strings.ReplaceAll(hclToken, hclToken, "127.0.0.0/32"))
+				}
+			}
 
+			fmt.Println(string(tokens.Bytes()))
+		}
+	}
+```
