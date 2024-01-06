@@ -27,16 +27,11 @@ func main() {
 
 	// hcl fileの解析、body, blocksの取得
 	for _, block := range hclFile.Body().Blocks() {
-		labels := block.Labels()
-		resourceType := block.Type()
-		var joinString []string
-		joinString = append(joinString, resourceType)
-		joinString = append(joinString, labels...)
-		blockPath := strings.Join(joinString, ".")
+		blockPath := createBlockPath(block)
 		fmt.Println(blockPath)
 
 		// blockのbodyに新しいblockを追加
-		testBlock := block.Body().AppendNewBlock("test", nil)
+		testBlock := createNewBlock(block.Body(), "test", nil)
 		testBlock.Body().SetAttributeValue("hoge", cty.StringVal("fuga"))
 
 		fmt.Printf("--------------------\n")
@@ -47,18 +42,7 @@ func main() {
 		})
 
 		// blockのbodyのattributeを取得
-		for _, attribute := range block.Body().Attributes() {
-			// attributeのexpressionを取得
-			tokens := attribute.Expr().BuildTokens(nil)
-			for tokenIndex, token := range tokens {
-				hclToken := string(token.Bytes)
-				if hclToken == "10.0.0.0/16" {
-					tokens[tokenIndex].Bytes = []byte(strings.ReplaceAll(hclToken, hclToken, "127.0.0.0/32"))
-				}
-			}
-			fmt.Printf("--------------------\n")
-			fmt.Println(string(tokens.Bytes()))
-		}
+		rewriteToken(block.Body().Attributes(), "10.0.0.0/16", "127.0.0.0/32")
 
 		// 特定のattributeを取得
 		attr := block.Body().GetAttribute("instance_tenancy")
@@ -70,6 +54,40 @@ func main() {
 	}
 	fmt.Printf("--------------------\n")
 	updated := hclFile.BuildTokens(nil).Bytes()
+	// formatを整えてくれる
 	output := hclwrite.Format(updated)
 	fmt.Fprint(os.Stdout, string(output))
+}
+
+
+func createBlockPath(block *hclwrite.Block) string {
+	lables := block.Labels()
+	resourceType := block.Type()
+
+	var blockPathStrings []string
+	blockPathStrings = append(blockPathStrings, resourceType)
+	blockPathStrings = append(blockPathStrings, lables...)
+	return strings.Join(blockPathStrings, ".")
+}
+
+func createNewBlock(body *hclwrite.Body, resourceType string, labels []string) *hclwrite.Block {
+	if labels == nil {
+		labels = []string{}
+	}
+	block := body.AppendNewBlock(resourceType, labels)
+	return block
+}
+
+func rewriteToken(attributes map[string]*hclwrite.Attribute, conditionString, replaceString string) {
+	// blockのbodyのattributeを取得
+	for _, attribute := range attributes {
+		// attributeのexpressionを取得
+		tokens := attribute.Expr().BuildTokens(nil)
+		for tokenIndex, token := range tokens {
+			hclToken := string(token.Bytes)
+			if hclToken == conditionString {
+				tokens[tokenIndex].Bytes = []byte(strings.ReplaceAll(hclToken, hclToken, replaceString))
+			}
+		}
+	}
 }
