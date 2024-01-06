@@ -5,7 +5,6 @@ resource "aws_vpc" "prod" {
   tags = {
     Name = "prod"
   }
-
 }
 
 resource "aws_vpc" "staging" {
