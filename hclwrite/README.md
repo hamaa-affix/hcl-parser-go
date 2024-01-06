@@ -122,3 +122,7 @@ for _, block := range hclFile.Body().Blocks() {
 		}
 	}
 ```
+### formatを整える
+```go
+hclwrite.Fomat(hclFile.BUildTokens(nil).Byte())
+```
